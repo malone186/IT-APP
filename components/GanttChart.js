@@ -6,6 +6,15 @@ const getMonthAbbr = (monthIdx) => {
   return months[monthIdx];
 };
 
+// 로컬 시간대 기준 날짜 파서 (9시간 UTC 타임존 오차 방지)
+const parseLocalDate = (dateStr) => {
+  if (!dateStr) return new Date();
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const d = new Date(year, month - 1, day);
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
 export default function GanttChart({ tasks = [], users = [], milestones = [] }) {
   const safeTasks = tasks || [];
   const safeMilestones = milestones || [];
@@ -20,8 +29,8 @@ export default function GanttChart({ tasks = [], users = [], milestones = [] }) 
 
     const dates = [];
     safeMilestones.forEach(m => {
-      if (m.startDate) dates.push(new Date(m.startDate));
-      if (m.endDate) dates.push(new Date(m.endDate));
+      if (m.startDate) dates.push(parseLocalDate(m.startDate));
+      if (m.endDate) dates.push(parseLocalDate(m.endDate));
     });
 
     if (dates.length > 0) {
@@ -71,13 +80,24 @@ export default function GanttChart({ tasks = [], users = [], milestones = [] }) 
 
   const todayOffset = getTodayLineOffset();
 
-  // 4. 마일스톤의 상태 동적 계산
+  // 4. 마일스톤의 상태 동적 계산 (종료 기한 조건 결합)
   const getMilestoneStatus = (milestoneId) => {
     const mTasks = safeTasks.filter(t => t.milestoneId === milestoneId);
     if (mTasks.length === 0) return 'TODO'; // 예정
 
     const completed = mTasks.filter(t => t.status === 'DONE').length;
     if (completed === mTasks.length) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const milestone = safeMilestones.find(m => m.id === milestoneId);
+      if (milestone && milestone.endDate) {
+        const endDate = parseLocalDate(milestone.endDate);
+        // 계획 종료일이 오늘보다 미래라면 완료(DONE)가 아닌 진행중(IN_PROGRESS) 상태 유지
+        if (endDate > today) {
+          return 'IN_PROGRESS';
+        }
+      }
       return 'DONE'; // 완료
     }
     
@@ -87,8 +107,8 @@ export default function GanttChart({ tasks = [], users = [], milestones = [] }) 
 
   // 5. 마일스톤 가로 바 레이아웃 계산
   const getBarLayout = (milestone) => {
-    const startDate = milestone.startDate ? new Date(milestone.startDate) : new Date();
-    const endDate = milestone.endDate ? new Date(milestone.endDate) : new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const startDate = milestone.startDate ? parseLocalDate(milestone.startDate) : new Date();
+    const endDate = milestone.endDate ? parseLocalDate(milestone.endDate) : new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
     
     startDate.setHours(0, 0, 0, 0);
     endDate.setHours(0, 0, 0, 0);
