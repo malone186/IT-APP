@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Dashboard from '@/components/Dashboard';
 import KanbanBoard from '@/components/KanbanBoard';
 import Milestones from '@/components/Milestones';
-import AIWorkAssistant from '@/components/AIWorkAssistant';
+import GanttChart from '@/components/GanttChart';
 import AuthScreen from '@/components/AuthScreen';
 import TeamChat from '@/components/TeamChat';
 import CalendarView from '@/components/CalendarView';
@@ -825,9 +825,9 @@ export default function Home() {
         {/* 본문 콘텐츠 스크롤 영역 */}
         <div className="flex-1 p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto">
           
-          {/* 상단 AI 업무 비서 & 요약 분석기 (상시 노출) */}
+          {/* 마일스톤 간트차트 타임라인 (상시 노출) */}
           <section>
-            <AIWorkAssistant tasks={data.tasks} users={data.users} milestones={data.milestones} />
+            <GanttChart tasks={data.tasks} milestones={data.milestones} />
           </section>
 
           {/* 메인 탭 콘텐츠 렌더링 */}
