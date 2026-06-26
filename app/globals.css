@@ -150,4 +150,43 @@ body {
   }
 }
 
+/* 텍스트 색상이 흐르는 효과 */
+@keyframes textShine {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-text-shine {
+  background-size: 200% auto;
+  animation: textShine 4s linear infinite;
+}
+
+/* 타이틀이 아래에서 부드럽게 솟구치며 타오르는 모션 */
+.animate-title-slide {
+  animation: titleSlide 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes titleSlide {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 텍스트가 둥실둥실 뜨는 플로팅 효과 */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+
 
