@@ -4,7 +4,7 @@ import prisma from '@/utils/db';
 // POST: 태스크 신규 생성
 export async function POST(request) {
   try {
-    const { id, title, description, status, priority, assigneeId, milestoneId } = await request.json();
+    const { id, title, description, status, priority, assigneeId, milestoneId, dueDate } = await request.json();
 
     if (!id || !title || !assigneeId) {
       return NextResponse.json({ error: 'id, title, and assigneeId are required.' }, { status: 400 });
@@ -19,7 +19,8 @@ export async function POST(request) {
         priority: priority || 'MEDIUM',
         assigneeId,
         milestoneId: milestoneId || null,
-        completedAt: status === 'DONE' ? new Date().toISOString().split('T')[0] : null
+        completedAt: status === 'DONE' ? new Date().toISOString().split('T')[0] : null,
+        dueDate: dueDate || null
       },
       include: {
         assignee: true
@@ -29,14 +30,14 @@ export async function POST(request) {
     return NextResponse.json({ task }, { status: 201 });
   } catch (error) {
     console.error('Create task error:', error);
-    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Internal server error.' }, { status: 500 });
   }
 }
 
 // PUT: 태스크 속성/상태 업데이트
 export async function PUT(request) {
   try {
-    const { id, title, description, status, priority, assigneeId, milestoneId } = await request.json();
+    const { id, title, description, status, priority, assigneeId, milestoneId, dueDate } = await request.json();
 
     if (!id) {
       return NextResponse.json({ error: 'id is required.' }, { status: 400 });
@@ -64,6 +65,7 @@ export async function PUT(request) {
     if (priority !== undefined) updateData.priority = priority;
     if (assigneeId !== undefined) updateData.assigneeId = assigneeId;
     if (milestoneId !== undefined) updateData.milestoneId = milestoneId || null;
+    if (dueDate !== undefined) updateData.dueDate = dueDate || null;
 
     const task = await prisma.task.update({
       where: { id },
@@ -76,7 +78,7 @@ export async function PUT(request) {
     return NextResponse.json({ task });
   } catch (error) {
     console.error('Update task error:', error);
-    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Internal server error.' }, { status: 500 });
   }
 }
 

@@ -7,6 +7,7 @@ import Milestones from '@/components/Milestones';
 import GitSimulator from '@/components/GitSimulator';
 import AuthScreen from '@/components/AuthScreen';
 import TeamChat from '@/components/TeamChat';
+import CalendarView from '@/components/CalendarView';
 
 const roleIcons = {
   PM: '👑',
@@ -62,6 +63,24 @@ export default function Home() {
   const [buildStatus, setBuildStatus] = useState('success');
   const [lastBuildTime, setLastBuildTime] = useState('3 minutes ago');
   const [toasts, setToasts] = useState([]);
+  
+  // 퀵 메모장 상태 및 로드
+  const [scratchpadMemo, setScratchpadMemo] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedMemo = localStorage.getItem('sa_scratchpad_memo');
+      if (savedMemo) {
+        setScratchpadMemo(savedMemo);
+      }
+    }
+  }, []);
+
+  const handleMemoChange = (e) => {
+    const val = e.target.value;
+    setScratchpadMemo(val);
+    localStorage.setItem('sa_scratchpad_memo', val);
+  };
 
   const showToast = (message) => {
     const id = Date.now();
@@ -78,7 +97,13 @@ export default function Home() {
         const res = await fetch('/api/data');
         if (res.ok) {
           const loadedData = await res.json();
-          setData(loadedData);
+          setData({
+            users: loadedData.users || [],
+            milestones: loadedData.milestones || [],
+            tasks: loadedData.tasks || [],
+            logs: loadedData.logs || [],
+            messages: loadedData.messages || []
+          });
         }
       } catch (err) {
         console.error('Failed to load initial data:', err);
@@ -247,10 +272,19 @@ export default function Home() {
   // 현재 로그인한 사용자의 오늘 작업 (TODO / IN_PROGRESS)
   const myTasks = data.tasks.filter(t => t.assigneeId === currentUserId && (t.status === 'TODO' || t.status === 'IN_PROGRESS'));
 
+  // 작업 통계 요약 집계
+  const totalTasks = data.tasks.length;
+  const doneTasks = data.tasks.filter(t => t.status === 'DONE').length;
+  const highPriorityTasks = data.tasks.filter(t => t.priority === 'HIGH' && t.status !== 'DONE').length;
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayDueTasks = data.tasks.filter(t => t.dueDate === todayStr && t.status !== 'DONE').length;
+  const completionRate = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+
   // 1. 태스크 추가
   const handleAddTask = async (taskData) => {
     try {
-      const newId = String(data.tasks.length > 0 ? Math.max(...data.tasks.map(t => parseInt(t.id))) + 1 : 1);
+      const numericIds = data.tasks.map(t => parseInt(t.id)).filter(id => !isNaN(id));
+      const newId = String(numericIds.length > 0 ? Math.max(...numericIds) + 1 : 1);
       
       const res = await fetch('/api/tasks', {
         method: 'POST',
@@ -277,9 +311,14 @@ export default function Home() {
           setData(freshData);
           showToast('새 태스크가 추가되었습니다! 📋');
         }
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        console.error('Task creation failed:', errJson);
+        showToast(`태스크 추가 실패: ${errJson.error || '서버 오류'}`);
       }
     } catch (err) {
       console.error('Add task error:', err);
+      showToast('태스크 추가 실패 (네트워크 에러)');
     }
   };
 
@@ -375,7 +414,6 @@ export default function Home() {
         if (updatedRes.ok) {
           const freshData = await updatedRes.json();
           setData(freshData);
-          showToast('태스크 상태가 업데이트되었습니다! 🚀');
         }
       }
     } catch (err) {
@@ -620,7 +658,48 @@ export default function Home() {
           >
             <span>💬 메시지 (Team Chat)</span>
           </button>
+          <button
+            onClick={() => setActiveTab('calendar')}
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] ${
+              activeTab === 'calendar'
+                ? 'bg-orange-600/20 text-orange-300 border border-orange-600/35 shadow-lg shadow-orange-500/5'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900/40 border border-transparent'
+            }`}
+          >
+            <span>🗓️ 일정 캘린더 (Calendar)</span>
+          </button>
         </nav>
+
+        {/* 작업 통계 요약 위젯 */}
+        <div className="bg-gray-950/40 border border-gray-900 p-4 rounded-xl flex flex-col gap-2.5">
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Sprint Metrics</span>
+          <div className="grid grid-cols-2 gap-2 text-[10px]">
+            <div className="bg-gray-900/60 p-2 rounded-lg border border-gray-850 flex flex-col justify-center">
+              <span className="text-gray-500 font-bold">긴급(HIGH)</span>
+              <span className="text-xs font-black text-red-400 mt-0.5">{highPriorityTasks}건</span>
+            </div>
+            <div className="bg-gray-900/60 p-2 rounded-lg border border-gray-850 flex flex-col justify-center">
+              <span className="text-gray-500 font-bold">오늘 마감</span>
+              <span className={`text-xs font-black mt-0.5 ${todayDueTasks > 0 ? 'text-orange-400 animate-pulse' : 'text-gray-300'}`}>{todayDueTasks}건</span>
+            </div>
+          </div>
+          <div className="flex justify-between items-center text-[9px] text-gray-400 border-t border-gray-900 pt-2">
+            <span>완료율</span>
+            <span className="font-bold text-emerald-400">{completionRate}% ({doneTasks}/{totalTasks})</span>
+          </div>
+        </div>
+
+        {/* 오늘의 퀵 메모장 위젯 */}
+        <div className="bg-gray-950/40 border border-gray-900 p-4 rounded-xl flex flex-col gap-2">
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Quick Scratchpad</span>
+          <textarea
+            value={scratchpadMemo}
+            onChange={handleMemoChange}
+            placeholder="팀 공유 메모 또는 작업 아이디어를 기입해 두세요..."
+            rows={3}
+            className="w-full bg-gray-900/80 border border-gray-850 rounded-lg p-2 text-[10px] text-gray-350 focus:outline-none focus:border-orange-500 placeholder-gray-700 transition-colors resize-none leading-relaxed"
+          />
+        </div>
 
         {/* 나의 오늘 작업 위젯 */}
         <div className="bg-gray-950/40 border border-gray-900 p-4 rounded-xl flex flex-col gap-2.5">
@@ -724,6 +803,7 @@ export default function Home() {
               {activeTab === 'kanban' && 'Sprint Kanban'}
               {activeTab === 'milestones' && 'Roadmap milestones'}
               {activeTab === 'chat' && 'Team Chatting'}
+              {activeTab === 'calendar' && 'Sprint Calendar'}
             </h1>
           </div>
           <div className="flex items-center space-x-2">
@@ -774,6 +854,16 @@ export default function Home() {
                   messages={data.messages}
                   currentUserId={currentUserId}
                   onSendMessage={handleSendMessage}
+                />
+              )}
+              {activeTab === 'calendar' && (
+                <CalendarView
+                  tasks={data.tasks}
+                  users={data.users}
+                  milestones={data.milestones}
+                  onAddTask={handleAddTask}
+                  onUpdateTask={handleUpdateTask}
+                  onDeleteTask={handleDeleteTask}
                 />
               )}
             </div>

@@ -53,6 +53,7 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
   const [formAssignee, setFormAssignee] = useState('');
   const [formMilestone, setFormMilestone] = useState('');
   const [formStatus, setFormStatus] = useState('TODO');
+  const [formDueDate, setFormDueDate] = useState('');
 
   // 필터된 태스크 목록 계산
   const filteredTasks = tasks.filter((task) => {
@@ -107,6 +108,7 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
     setFormAssignee(users[0]?.id || '');
     setFormMilestone('');
     setFormStatus(status);
+    setFormDueDate('');
     setIsModalOpen(true);
   };
 
@@ -118,6 +120,7 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
     setFormAssignee(task.assigneeId);
     setFormMilestone(task.milestoneId || '');
     setFormStatus(task.status);
+    setFormDueDate(task.dueDate || '');
     setIsModalOpen(true);
   };
 
@@ -131,7 +134,8 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
       priority: formPriority,
       assigneeId: formAssignee,
       milestoneId: formMilestone,
-      status: formStatus
+      status: formStatus,
+      dueDate: formDueDate || null
     };
 
     if (editingTask) {
@@ -292,24 +296,34 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
                       </div>
 
                       {/* 카드 하단 메타 */}
-                      <div className="flex justify-between items-center mt-2 border-t border-gray-800/50 pt-2.5">
-                        {milestone && (
-                          <span 
-                            title={milestone.title}
-                            className="text-[10px] bg-gray-900 border border-gray-800 text-gray-400 px-2 py-0.5 rounded max-w-[130px] truncate cursor-help select-none"
-                          >
-                            🎯 {milestone.title}
-                          </span>
-                        )}
-                        {assignee && (
-                          <div className="flex items-center space-x-1.5 ml-auto" title={`${assignee.name} (${assignee.role})`}>
-                            {getAvatarPlaceholder(assignee.name)}
-                            <span className="text-[10px] text-gray-400 font-bold flex items-center gap-0.5">
-                              <span>{roleIcons[assignee.role] || ''}</span>
-                              <span>{assignee.name}</span>
-                            </span>
+                      <div className="flex flex-col gap-1.5 mt-2 border-t border-gray-800/50 pt-2.5">
+                        {task.dueDate && (
+                          <div className="flex items-center text-[9px] text-orange-400 font-mono gap-1 select-none">
+                            <span>📅 마감일:</span>
+                            <span>{task.dueDate}</span>
                           </div>
                         )}
+                        <div className="flex justify-between items-center w-full">
+                          {milestone ? (
+                            <span 
+                              title={milestone.title}
+                              className="text-[9px] bg-gray-900 border border-gray-800 text-gray-400 px-1.5 py-0.5 rounded max-w-[100px] truncate cursor-help select-none"
+                            >
+                              🎯 {milestone.title}
+                            </span>
+                          ) : (
+                            <div />
+                          )}
+                          {assignee && (
+                            <div className="flex items-center space-x-1 ml-auto" title={`${assignee.name} (${assignee.role})`}>
+                              {getAvatarPlaceholder(assignee.name)}
+                              <span className="text-[9px] text-gray-450 font-bold flex items-center gap-0.5">
+                                <span>{roleIcons[assignee.role] || ''}</span>
+                                <span>{assignee.name}</span>
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
@@ -423,6 +437,17 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
                     ))}
                   </select>
                 </div>
+              </div>
+
+              {/* 마감 기한 (캘린더 연동) */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 mb-1">마감 기한 (일정 캘린더 연동)</label>
+                <input
+                  type="date"
+                  value={formDueDate}
+                  onChange={(e) => setFormDueDate(e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors"
+                />
               </div>
 
               {/* 액션 버튼 */}

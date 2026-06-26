@@ -26,18 +26,20 @@ const getAvatarPlaceholder = (name) => {
   );
 };
 
-export default function Dashboard({ tasks, users, logs, milestones }) {
-  const [selectedMilestoneId, setSelectedMilestoneId] = useState(milestones[0]?.id || '');
+export default function Dashboard({ tasks = [], users = [], logs = [], milestones = [] }) {
+  const [selectedMilestoneId, setSelectedMilestoneId] = useState(milestones?.[0]?.id || '');
 
   // 1. 전체 진척도 계산
-  const totalTasks = tasks.length;
-  const completedTasks = tasks.filter(t => t.status === 'DONE').length;
+  const safeTasks = tasks || [];
+  const safeUsers = users || [];
+  const totalTasks = safeTasks.length;
+  const completedTasks = safeTasks.filter(t => t.status === 'DONE').length;
   const progressPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-  // 2. 팀원별 리소스 로드 계산 (IN_PROGRESS 또는 IN_REVIEW 상태인 태스크)
-  const resourceLoads = users.map(user => {
-    const activeTasksCount = tasks.filter(
-      t => t.assigneeId === user.id && (t.status === 'IN_PROGRESS' || t.status === 'IN_REVIEW')
+  // 2. 팀원별 리소스 로드 계산 (완료되지 않은 미완료 태스크 전체: TODO, IN_PROGRESS, IN_REVIEW)
+  const resourceLoads = safeUsers.map(user => {
+    const activeTasksCount = safeTasks.filter(
+      t => t.assigneeId === user.id && t.status !== 'DONE'
     ).length;
     return {
       ...user,
@@ -46,7 +48,9 @@ export default function Dashboard({ tasks, users, logs, milestones }) {
   });
 
   // 최대 태스크 수 구하기 (그래프 스케일용, 최소 1)
-  const maxActiveTasks = Math.max(...resourceLoads.map(r => r.activeTasksCount), 1);
+  const maxActiveTasks = resourceLoads.length > 0 
+    ? Math.max(...resourceLoads.map(r => r.activeTasksCount), 1) 
+    : 1;
 
   // 3. 원형 게이지를 위한 stroke 계산
   const radius = 50;
@@ -96,7 +100,7 @@ export default function Dashboard({ tasks, users, logs, milestones }) {
 
       {/* CARD 2: 팀원별 작업 부하 현황 */}
       <div className="glass-card rounded-2xl p-6 md:col-span-2">
-        <h3 className="text-gray-400 text-sm font-semibold mb-4">팀원별 활성 작업 부하 (진행/리뷰 중)</h3>
+        <h3 className="text-gray-400 text-sm font-semibold mb-4">팀원별 활성 작업 부하 (미완료 작업 전체)</h3>
         <div className="space-y-4">
           {resourceLoads.map(member => {
             const barWidthPercent = (member.activeTasksCount / maxActiveTasks) * 100;
@@ -151,7 +155,7 @@ export default function Dashboard({ tasks, users, logs, milestones }) {
           {logs.length === 0 ? (
             <p className="text-xs text-gray-500 text-center py-4">활동 기록이 없습니다.</p>
           ) : (
-            logs.slice(0).reverse().map(log => (
+            logs.map(log => (
               <div key={log.id} className="flex items-start space-x-3 text-xs border-b border-gray-800 pb-2">
                 <span className="text-orange-400 font-mono shrink-0">
                   {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
