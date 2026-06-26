@@ -8,6 +8,14 @@ const roleIcons = {
   DESIGNER: '🎨'
 };
 
+const roleNames = {
+  PM: '대표/기획',
+  FE: '마케팅/실무',
+  BE: '재무/운영',
+  DEVOPS: '총무/지원',
+  DESIGNER: '디자인'
+};
+
 const getAvatarPlaceholder = (name) => {
   const initial = name ? name.slice(-2) : '?';
   let hash = 0;
@@ -31,6 +39,49 @@ export default function CalendarView({ tasks, users, milestones, onAddTask, onUp
   // 모달 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+
+  // 드래그 앤 드롭 상태 추가
+  const [draggedTaskId, setDraggedTaskId] = useState(null);
+  const [activeDropDate, setActiveDropDate] = useState(null);
+
+  const handleTaskDragStart = (e, taskId) => {
+    setDraggedTaskId(taskId);
+    e.dataTransfer.setData('text/plain', taskId);
+  };
+
+  const handleTaskDragEnd = () => {
+    setDraggedTaskId(null);
+    setActiveDropDate(null);
+  };
+
+  const handleCellDragOver = (e, dateStr) => {
+    e.preventDefault();
+    if (activeDropDate !== dateStr) {
+      setActiveDropDate(dateStr);
+    }
+  };
+
+  const handleCellDrop = (e, targetDateStr) => {
+    e.preventDefault();
+    const taskId = e.dataTransfer.getData('text/plain') || draggedTaskId;
+    if (taskId) {
+      const targetTask = tasks.find(t => t.id === taskId);
+      if (targetTask && targetTask.dueDate !== targetDateStr) {
+        const updatedData = {
+          title: targetTask.title,
+          description: targetTask.description,
+          priority: targetTask.priority,
+          assigneeId: targetTask.assigneeId,
+          milestoneId: targetTask.milestoneId || '',
+          status: targetTask.status,
+          dueDate: targetDateStr
+        };
+        onUpdateTask(taskId, updatedData);
+      }
+    }
+    setActiveDropDate(null);
+    setDraggedTaskId(null);
+  };
   
   // 폼 상태
   const [formTitle, setFormTitle] = useState('');
@@ -187,7 +238,7 @@ export default function CalendarView({ tasks, users, milestones, onAddTask, onUp
               자동 연동
             </span>
           </h2>
-          <span className="text-xs text-gray-550 font-mono">Tasks Linked by Due Date</span>
+          <span className="text-xs text-gray-550 font-mono">마감 기한별 업무 현황</span>
         </div>
 
         <div className="flex items-center space-x-2">
@@ -234,13 +285,21 @@ export default function CalendarView({ tasks, users, milestones, onAddTask, onUp
         {cells.map((cell, idx) => {
           const isToday = cell.dateStr === todayStr;
           const cellTasks = tasks.filter(t => t.dueDate === cell.dateStr);
+          const isOver = activeDropDate === cell.dateStr;
 
           return (
             <div
               key={idx}
               onClick={() => openAddModal(cell.dateStr)}
+              onDragOver={(e) => handleCellDragOver(e, cell.dateStr)}
+              onDragLeave={() => setActiveDropDate(null)}
+              onDrop={(e) => handleCellDrop(e, cell.dateStr)}
               className={`glass rounded-xl p-3 min-h-[95px] max-h-[135px] flex flex-col justify-between border cursor-pointer transition-all hover:bg-gray-900/20 ${
-                cell.isCurrentMonth ? 'border-gray-800/80 bg-gray-950/20' : 'border-gray-900/30 bg-gray-950/5 opacity-40'
+                isOver 
+                  ? 'border-orange-500/50 bg-orange-950/20 scale-[1.02]' 
+                  : cell.isCurrentMonth 
+                    ? 'border-gray-800/80 bg-gray-950/20' 
+                    : 'border-gray-900/30 bg-gray-950/5 opacity-40'
               } ${isToday ? 'border-orange-500/50 bg-orange-950/5 shadow-inner shadow-orange-500/5' : ''}`}
             >
               {/* 날짜 번호 */}
@@ -262,9 +321,12 @@ export default function CalendarView({ tasks, users, milestones, onAddTask, onUp
                 {cellTasks.map(t => (
                   <div
                     key={t.id}
+                    draggable={true}
+                    onDragStart={(e) => handleTaskDragStart(e, t.id)}
+                    onDragEnd={handleTaskDragEnd}
                     onClick={(e) => openEditModal(e, t)}
                     title={`[#${t.id}] ${t.title}`}
-                    className={`px-2 py-1 rounded text-[10px] md:text-[11px] font-bold border flex items-center justify-between gap-1 transition-transform active:scale-95 ${getPriorityBadgeStyle(t)}`}
+                    className={`px-2 py-1 rounded text-[10px] md:text-[11px] font-bold border flex items-center justify-between gap-1 transition-transform active:scale-95 cursor-grab active:cursor-grabbing ${getPriorityBadgeStyle(t)}`}
                   >
                     <span className="truncate flex-1 font-sans">{t.title}</span>
                   </div>
@@ -280,12 +342,12 @@ export default function CalendarView({ tasks, users, milestones, onAddTask, onUp
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="glass rounded-2xl w-full max-w-md p-6 border border-gray-850 shadow-2xl">
             <h3 className="text-lg font-bold text-white mb-4">
-              {editingTask ? '태스크 수정 (캘린더 연동)' : '새 태스크 추가 (캘린더 연동)'}
+              {editingTask ? '업무 수정 (일정 캘린더 연동)' : '새 업무 등록 (일정 캘린더 연동)'}
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* 제목 */}
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1">태스크명 *</label>
+                <label className="block text-xs font-semibold text-gray-400 mb-1">업무명 *</label>
                 <input
                   type="text"
                   required
@@ -317,9 +379,9 @@ export default function CalendarView({ tasks, users, milestones, onAddTask, onUp
                     onChange={(e) => setFormPriority(e.target.value)}
                     className="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors"
                   >
-                    <option value="HIGH">High</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="LOW">Low</option>
+                    <option value="HIGH">높음</option>
+                    <option value="MEDIUM">보통</option>
+                    <option value="LOW">낮음</option>
                   </select>
                 </div>
 
@@ -331,10 +393,10 @@ export default function CalendarView({ tasks, users, milestones, onAddTask, onUp
                     onChange={(e) => setFormStatus(e.target.value)}
                     className="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors"
                   >
-                    <option value="TODO">할 일</option>
+                    <option value="TODO">대기 업무</option>
                     <option value="IN_PROGRESS">진행 중</option>
-                    <option value="IN_REVIEW">검토 중</option>
-                    <option value="DONE">완료</option>
+                    <option value="IN_REVIEW">검토/컨펌 중</option>
+                    <option value="DONE">완료 보고</option>
                   </select>
                 </div>
               </div>
@@ -350,7 +412,7 @@ export default function CalendarView({ tasks, users, milestones, onAddTask, onUp
                   >
                     {users.map((u) => (
                       <option key={u.id} value={u.id}>
-                        {roleIcons[u.role] || ''} {u.name} ({u.role})
+                        {roleIcons[u.role] || ''} {u.name} ({roleNames[u.role] || u.role})
                       </option>
                     ))}
                   </select>
@@ -358,7 +420,7 @@ export default function CalendarView({ tasks, users, milestones, onAddTask, onUp
 
                 {/* 마일스톤 */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1">마일스톤</label>
+                  <label className="block text-xs font-semibold text-gray-400 mb-1">프로젝트 목표</label>
                   <select
                     value={formMilestone || ''}
                     onChange={(e) => setFormMilestone(e.target.value)}

@@ -8,6 +8,14 @@ const roleIcons = {
   DESIGNER: '🎨'
 };
 
+const roleNames = {
+  PM: '대표/기획',
+  FE: '마케팅/실무',
+  BE: '재무/운영',
+  DEVOPS: '총무/지원',
+  DESIGNER: '디자인'
+};
+
 const getAvatarPlaceholder = (name) => {
   const initial = name ? name.slice(-2) : '?';
   let hash = 0;
@@ -72,7 +80,7 @@ export default function TeamChat({ users, messages, currentUserId, onSendMessage
       return '# 팀 전체 단체방';
     }
     const targetUser = users.find(u => u.id === activeRoomId);
-    return targetUser ? `💬 ${roleIcons[targetUser.role] || ''} ${targetUser.name} (${targetUser.role})님과의 DM` : '대화방';
+    return targetUser ? `💬 ${roleIcons[targetUser.role] || ''} ${targetUser.name} (${roleNames[targetUser.role] || targetUser.role})님과의 1:1 대화방` : '대화방';
   };
 
   return (
@@ -82,7 +90,7 @@ export default function TeamChat({ users, messages, currentUserId, onSendMessage
         
         {/* 단체 채널 */}
         <div className="mb-6">
-          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-2 px-1">Channels</span>
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-2 px-1">부서 전체 단체방</span>
           <button
             onClick={() => setActiveRoomId('general')}
             className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-colors flex items-center justify-between ${
@@ -97,7 +105,7 @@ export default function TeamChat({ users, messages, currentUserId, onSendMessage
 
         {/* 1:1 대화 상대 (DM) */}
         <div className="flex-1 flex flex-col overflow-y-auto">
-          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-2 px-1">Direct Messages</span>
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-2 px-1">1:1 대화방</span>
           <div className="space-y-1.5">
             {otherUsers.length === 0 ? (
               <div className="text-[10px] text-gray-550 italic px-2 py-3 select-none leading-relaxed">
@@ -121,7 +129,7 @@ export default function TeamChat({ users, messages, currentUserId, onSendMessage
                     </div>
                     <span className="truncate flex items-center gap-0.5">
                       <span>{roleIcons[user.role] || ''}</span>
-                      <span>{user.name} ({user.role})</span>
+                      <span>{user.name} ({roleNames[user.role] || user.role})</span>
                     </span>
                   </div>
                 </button>
@@ -137,7 +145,7 @@ export default function TeamChat({ users, messages, currentUserId, onSendMessage
         {/* 상단 룸 타이틀 */}
         <div className="px-6 py-4 border-b border-gray-900 bg-gray-950/20 flex justify-between items-center shrink-0">
           <span className="text-xs font-bold text-gray-200">{getRoomTitle()}</span>
-          <span className="text-[9px] text-gray-500 font-mono">Logged in as {currentUser?.name}</span>
+          <span className="text-[9px] text-gray-550 font-mono">접속 계정: {currentUser?.name}</span>
         </div>
 
         {/* 메시지 출력 영역 */}
@@ -168,7 +176,7 @@ export default function TeamChat({ users, messages, currentUserId, onSendMessage
                     {!isMe && sender && (
                       <span className="text-[10px] text-gray-550 font-bold mb-1 ml-1 flex items-center gap-0.5">
                         <span>{roleIcons[sender.role] || ''}</span>
-                        <span>{sender.name} ({sender.role})</span>
+                        <span>{sender.name} ({roleNames[sender.role] || sender.role})</span>
                       </span>
                     )}
 

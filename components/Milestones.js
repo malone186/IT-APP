@@ -55,25 +55,25 @@ export default function Milestones({ milestones, tasks, onAddMilestone, onDelete
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-white">Milestones & Roadmap</h2>
+        <h2 className="text-xl font-bold text-white">프로젝트 목표 & 로드맵</h2>
         <button
           onClick={() => setIsAddOpen(!isAddOpen)}
           className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-sm px-4 py-2 rounded-lg transition-colors"
         >
-          {isAddOpen ? '닫기' : '+ 새 마일스톤'}
+          {isAddOpen ? '닫기' : '+ 새 목표 등록'}
         </button>
       </div>
 
       {/* 추가 폼 */}
       {isAddOpen && (
         <form onSubmit={handleSubmit} className="glass rounded-2xl p-6 mb-6 max-w-md border border-gray-800 space-y-4">
-          <h3 className="text-sm font-bold text-gray-200">신규 마일스톤 등록</h3>
+          <h3 className="text-sm font-bold text-gray-200">신규 프로젝트 목표 등록</h3>
           <div>
-            <label className="block text-xs font-semibold text-gray-400 mb-1">마일스톤명 *</label>
+            <label className="block text-xs font-semibold text-gray-400 mb-1">목표 이름 *</label>
             <input
               type="text"
               required
-              placeholder="예: v1.1.5 성능 최적화"
+              placeholder="예: 마케팅 성과 대시보드 리뉴얼"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors"
@@ -110,7 +110,7 @@ export default function Milestones({ milestones, tasks, onAddMilestone, onDelete
         </form>
       )}
 
-      {/* 마일스톤 카드 목록 */}
+      {/* 프로젝트 목표 목록 */}
       <div className="space-y-4">
         {milestones.map((m) => {
           const mTasks = tasks.filter((t) => t.milestoneId === m.id);
@@ -146,7 +146,7 @@ export default function Milestones({ milestones, tasks, onAddMilestone, onDelete
                     <span className="text-xs font-bold text-gray-300 shrink-0">{progressPercent}%</span>
                   </div>
                   <div className="text-xs text-gray-400 mt-1">
-                    총 {mTotal}개 태스크 중 {mCompleted}개 완료
+                    총 {mTotal}개 업무 중 {mCompleted}개 완료
                   </div>
                 </div>
 
@@ -156,7 +156,7 @@ export default function Milestones({ milestones, tasks, onAddMilestone, onDelete
                     onClick={() => toggleExpand(m.id)}
                     className="text-xs bg-gray-850 hover:bg-gray-800 text-gray-305 font-semibold px-3 py-1.5 rounded-lg border border-gray-850 transition-colors"
                   >
-                    {isExpanded ? '태스크 숨기기' : '태스크 보기'}
+                    {isExpanded ? '업무 숨기기' : '업무 보기'}
                   </button>
                   <button
                     onClick={() => onDeleteMilestone(m.id)}
@@ -167,12 +167,12 @@ export default function Milestones({ milestones, tasks, onAddMilestone, onDelete
                 </div>
               </div>
 
-              {/* 하위 태스크 아코디언 */}
+              {/* 연동된 업무 목록 아코디언 */}
               {isExpanded && (
                 <div className="mt-4 pt-4 border-t border-gray-800/80 space-y-2">
-                  <h4 className="text-xs font-bold text-gray-400 mb-2">하위 태스크 목록</h4>
+                  <h4 className="text-xs font-bold text-gray-400 mb-2">연동된 업무 목록</h4>
                   {mTasks.length === 0 ? (
-                    <p className="text-xs text-gray-500 italic">마일스톤에 할당된 태스크가 없습니다.</p>
+                    <p className="text-xs text-gray-500 italic">프로젝트 목표에 할당된 업무가 없습니다.</p>
                   ) : (
                     mTasks.map((t) => (
                       <div
@@ -186,22 +186,22 @@ export default function Milestones({ milestones, tasks, onAddMilestone, onDelete
                         <div>
                           {t.status === 'DONE' && (
                             <span className="bg-emerald-950/60 border border-emerald-900/50 text-emerald-400 font-bold px-2.5 py-0.5 rounded">
-                              DONE
+                              완료
                             </span>
                           )}
                           {t.status === 'IN_REVIEW' && (
                             <span className="bg-orange-950/60 border border-orange-900/50 text-orange-400 font-bold px-2.5 py-0.5 rounded">
-                              REVIEW
+                              검토/컨펌 중
                             </span>
                           )}
                           {t.status === 'IN_PROGRESS' && (
                             <span className="bg-amber-950/60 border border-amber-900/50 text-amber-400 font-bold px-2.5 py-0.5 rounded">
-                              PROGRESS
+                              진행 중
                             </span>
                           )}
                           {t.status === 'TODO' && (
                             <span className="bg-blue-950/60 border border-blue-900/50 text-blue-400 font-bold px-2.5 py-0.5 rounded">
-                              TODO
+                              대기 중
                             </span>
                           )}
                         </div>
@@ -216,7 +216,7 @@ export default function Milestones({ milestones, tasks, onAddMilestone, onDelete
 
         {milestones.length === 0 && (
           <div className="text-center py-12 border border-dashed border-gray-800 rounded-2xl">
-            <span className="text-sm text-gray-500">등록된 마일스톤이 없습니다.</span>
+            <span className="text-sm text-gray-500">등록된 프로젝트 목표가 없습니다.</span>
           </div>
         )}
       </div>

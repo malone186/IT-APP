@@ -104,11 +104,11 @@ export default function AuthScreen({ users, onLogin, onSignUp }) {
           
           {/* 타이틀 및 거대 설명 */}
           <h1 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight leading-tight max-w-3xl mb-6 animate-title-slide">
-            스프린트를 더 과학적으로 분석하고,<br/>팀 협업을 혁신하세요.
+            프로젝트 목표를 더 직관적으로 관리하고,<br/>팀 협업을 혁신하세요.
           </h1>
           
           <p className="text-sm md:text-lg text-gray-400 leading-relaxed max-w-2xl mb-12 font-medium">
-            S.A는 실시간 개발 진척도 시각화, 지능형 칸반 보드, D-Day 모니터링 및 실시간 채팅 로그를 결합하여 팀의 개발 스프린트를 과학적으로 분석하고 협업 효율성을 극대화합니다.
+            S.A는 실시간 진행 상황 시각화, 직관적인 부서 업무 진행 현황판, 마감 기한 D-Day 모니터링 및 실시간 부서 메신저를 결합하여 팀의 프로젝트 진행 현황을 요약 브리핑하고 협업 효율성을 극대화합니다.
           </p>
           
           {/* 진입 버튼 목록 (수평 와이드 구조) */}
@@ -130,7 +130,7 @@ export default function AuthScreen({ users, onLogin, onSignUp }) {
               }}
               className="w-full sm:w-auto px-8 py-4 bg-gray-900/80 hover:bg-gray-800/80 text-gray-200 border border-gray-800 hover:border-gray-700 font-extrabold text-base rounded-2xl hover:scale-[1.03] active:scale-[0.98] transition-all cursor-pointer text-center"
             >
-              신규 팀원 계정 등록 (회원가입)
+              신규 직원 계정 등록 (회원가입)
             </button>
           </div>
         </div>
@@ -164,7 +164,7 @@ export default function AuthScreen({ users, onLogin, onSignUp }) {
 
           <div className="p-8">
             <h2 className="text-lg font-bold text-white mb-6">
-              {viewState === 'login' ? '로그인' : '팀원 가입 (Sign up)'}
+              {viewState === 'login' ? '로그인' : '직원 가입 (Sign up)'}
             </h2>
 
             {errorMsg && (
@@ -247,14 +247,14 @@ export default function AuthScreen({ users, onLogin, onSignUp }) {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-2">개발 역할군 (Role) *</label>
+                  <label className="block text-xs font-semibold text-gray-400 mb-2">담당 부서 및 역할군 (Role) *</label>
                   <div className="grid grid-cols-5 gap-2">
                     {[
-                      { val: 'PM', label: 'PM', icon: '👑', color: 'border-amber-500 text-amber-400 bg-amber-500/10' },
-                      { val: 'FE', label: 'FE', icon: '💻', color: 'border-sky-500 text-sky-400 bg-sky-500/10' },
-                      { val: 'BE', label: 'BE', icon: '⚙️', color: 'border-emerald-500 text-emerald-400 bg-emerald-500/10' },
-                      { val: 'DEVOPS', label: 'DevOps', icon: '🚀', color: 'border-purple-500 text-purple-400 bg-purple-500/10' },
-                      { val: 'DESIGNER', label: 'Design', icon: '🎨', color: 'border-pink-500 text-pink-400 bg-pink-500/10' }
+                      { val: 'PM', label: '대표/기획', icon: '👑', color: 'border-amber-500 text-amber-400 bg-amber-500/10' },
+                      { val: 'FE', label: '마케팅/실무', icon: '💻', color: 'border-sky-500 text-sky-400 bg-sky-500/10' },
+                      { val: 'BE', label: '재무/운영', icon: '⚙️', color: 'border-emerald-500 text-emerald-400 bg-emerald-500/10' },
+                      { val: 'DEVOPS', label: '총무/지원', icon: '🚀', color: 'border-purple-500 text-purple-400 bg-purple-500/10' },
+                      { val: 'DESIGNER', label: '디자인', icon: '🎨', color: 'border-pink-500 text-pink-400 bg-pink-500/10' }
                     ].map((roleItem) => (
                       <button
                         key={roleItem.val}

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Dashboard from '@/components/Dashboard';
 import KanbanBoard from '@/components/KanbanBoard';
 import Milestones from '@/components/Milestones';
-import GitSimulator from '@/components/GitSimulator';
+import AIWorkAssistant from '@/components/AIWorkAssistant';
 import AuthScreen from '@/components/AuthScreen';
 import TeamChat from '@/components/TeamChat';
 import CalendarView from '@/components/CalendarView';
@@ -15,6 +15,14 @@ const roleIcons = {
   BE: '⚙️',
   DEVOPS: '🚀',
   DESIGNER: '🎨'
+};
+
+const roleNames = {
+  PM: '대표/기획',
+  FE: '마케팅/실무',
+  BE: '재무/운영',
+  DEVOPS: '총무/지원',
+  DESIGNER: '디자인'
 };
 
 const getAvatarPlaceholder = (name) => {
@@ -149,7 +157,7 @@ export default function Home() {
       const { user } = await res.json();
 
       // 로그인 로그 기록
-      const logText = `${user.name}(${user.role})님이 로그인했습니다.`;
+      const logText = `${user.name}(${roleNames[user.role] || user.role})님이 로그인했습니다.`;
       await fetch('/api/logs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -188,7 +196,7 @@ export default function Home() {
       const { user } = await res.json();
 
       // 회원가입 로그 기록
-      const logText = `신규 팀원 ${user.name}(${user.role})님이 가입을 완료했습니다.`;
+      const logText = `신규 직원 ${user.name}(${roleNames[user.role] || user.role})님이 가입을 완료했습니다.`;
       await fetch('/api/logs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -224,7 +232,7 @@ export default function Home() {
       });
 
       // 로그아웃 로그 기록
-      const logText = `${user ? user.name : '알수없음'}님이 로그아웃했습니다.`;
+      const logText = `${user ? user.name : '알 수 없음'}님이 로그아웃했습니다.`;
       await fetch('/api/logs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -297,7 +305,8 @@ export default function Home() {
 
       if (res.ok) {
         const creator = data.users.find(u => u.id === taskData.assigneeId);
-        const logText = `${creator ? creator.name : '알수없음'}님이 새 태스크 "#${newId} ${taskData.title}"을 추가했습니다.`;
+        const assigneeRole = creator ? `(${roleNames[creator.role] || creator.role})` : '';
+        const logText = `${creator ? creator.name : '알 수 없음'}${assigneeRole}님이 새 업무 "#${newId} ${taskData.title}"를 추가했습니다.`;
         
         await fetch('/api/logs', {
           method: 'POST',
@@ -309,12 +318,12 @@ export default function Home() {
         if (updatedRes.ok) {
           const freshData = await updatedRes.json();
           setData(freshData);
-          showToast('새 태스크가 추가되었습니다! 📋');
+          showToast('새 업무가 추가되었습니다! 📋');
         }
       } else {
         const errJson = await res.json().catch(() => ({}));
         console.error('Task creation failed:', errJson);
-        showToast(`태스크 추가 실패: ${errJson.error || '서버 오류'}`);
+        showToast(`업무 추가 실패: ${errJson.error || '서버 오류'}`);
       }
     } catch (err) {
       console.error('Add task error:', err);
@@ -336,7 +345,8 @@ export default function Home() {
 
       if (res.ok) {
         const assignee = data.users.find(u => u.id === taskData.assigneeId);
-        const logText = `${assignee ? assignee.name : '알수없음'}님이 태스크 "#${id} ${taskData.title}" 정보를 수정했습니다.`;
+        const assigneeRole = assignee ? `(${roleNames[assignee.role] || assignee.role})` : '';
+        const logText = `${assignee ? assignee.name : '알 수 없음'}${assigneeRole}님이 업무 "#${id} ${taskData.title}" 정보를 수정했습니다.`;
         
         await fetch('/api/logs', {
           method: 'POST',
@@ -348,7 +358,7 @@ export default function Home() {
         if (updatedRes.ok) {
           const freshData = await updatedRes.json();
           setData(freshData);
-          showToast('태스크 정보가 수정되었습니다! ⚙️');
+          showToast('업무 정보가 수정되었습니다! ⚙️');
         }
       }
     } catch (err) {
@@ -365,7 +375,7 @@ export default function Home() {
       });
 
       if (res.ok) {
-        const logText = `태스크 "#${id} ${targetTask ? targetTask.title : ''}"이 삭제되었습니다.`;
+        const logText = `업무 "#${id} ${targetTask ? targetTask.title : ''}"가 삭제되었습니다.`;
         await fetch('/api/logs', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -376,7 +386,7 @@ export default function Home() {
         if (updatedRes.ok) {
           const freshData = await updatedRes.json();
           setData(freshData);
-          showToast('태스크가 삭제되었습니다! 🗑️');
+          showToast('업무가 삭제되었습니다! 🗑️');
         }
       }
     } catch (err) {
@@ -400,9 +410,10 @@ export default function Home() {
       });
 
       if (res.ok) {
-        const statusNames = { TODO: '할 일', IN_PROGRESS: '진행 중', IN_REVIEW: '검토 중', DONE: '완료' };
+        const statusNames = { TODO: '대기 업무', IN_PROGRESS: '진행 중', IN_REVIEW: '검토/컨펌 중', DONE: '완료 보고' };
         const assignee = data.users.find(u => u.id === targetTask.assigneeId);
-        const logText = `${assignee ? assignee.name : '시스템'}님이 태스크 "#${id}"의 상태를 [${statusNames[newStatus]}] 상태로 이동했습니다.`;
+        const assigneeRole = assignee ? `(${roleNames[assignee.role] || assignee.role})` : '';
+        const logText = `${assignee ? assignee.name : '시스템'}${assigneeRole}님이 업무 "#${id}"의 상태를 [${statusNames[newStatus]}] 상태로 이동했습니다.`;
         
         await fetch('/api/logs', {
           method: 'POST',
@@ -431,7 +442,7 @@ export default function Home() {
       });
 
       if (res.ok) {
-        const logText = `새 마일스톤 "${milestoneData.title}"이 프로젝트 로드맵에 추가되었습니다.`;
+        const logText = `새 프로젝트 목표 "${milestoneData.title}"가 프로젝트 로드맵에 추가되었습니다.`;
         await fetch('/api/logs', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -442,7 +453,7 @@ export default function Home() {
         if (updatedRes.ok) {
           const freshData = await updatedRes.json();
           setData(freshData);
-          showToast('새 마일스톤이 추가되었습니다! 🎯');
+          showToast('새 프로젝트 목표가 추가되었습니다! 🎯');
         }
       }
     } catch (err) {
@@ -459,7 +470,7 @@ export default function Home() {
       });
 
       if (res.ok) {
-        const logText = `마일스톤 "${targetMilestone ? targetMilestone.title : ''}"이 삭제되었습니다.`;
+        const logText = `프로젝트 목표 "${targetMilestone ? targetMilestone.title : ''}"가 삭제되었습니다.`;
         await fetch('/api/logs', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -470,7 +481,7 @@ export default function Home() {
         if (updatedRes.ok) {
           const freshData = await updatedRes.json();
           setData(freshData);
-          showToast('마일스톤이 삭제되었습니다! 🗑️');
+          showToast('프로젝트 목표가 삭제되었습니다! 🗑️');
         }
       }
     } catch (err) {
@@ -500,10 +511,10 @@ export default function Home() {
       });
 
       if (res.ok) {
-        const statusNames = { TODO: '할 일', IN_PROGRESS: '진행 중', IN_REVIEW: '검토 중', DONE: '완료' };
+        const statusNames = { TODO: '대기 업무', IN_PROGRESS: '진행 중', IN_REVIEW: '검토/컨펌 중', DONE: '완료 보고' };
         const assignee = data.users.find(u => u.id === targetTask.assigneeId);
-        const assigneeName = assignee ? `${assignee.name}(${assignee.role})` : '팀원';
-        const logText = `[Git Webhook Success] 🚀 ${assigneeName}님이 커밋 "${commitMessage}"을 푸시하여 태스크 #${taskId}을 [${statusNames[targetStatus]}] 상태로 전이하고 빌드 컴파일을 성공적으로 완료했습니다.`;
+        const assigneeName = assignee ? `${assignee.name}(${roleNames[assignee.role] || assignee.role})` : '직원';
+        const logText = `[업무 보고 완료] 🚀 ${assigneeName}님이 "${commitMessage}" 메시지로 업무 완료 보고를 진행하여, 업무 #${taskId}의 상태를 [${statusNames[targetStatus]}] 상태로 갱신하고 컴파일 검증을 성공적으로 마쳤습니다.`;
         
         await fetch('/api/logs', {
           method: 'POST',
@@ -511,7 +522,7 @@ export default function Home() {
           body: JSON.stringify({ text: logText })
         });
 
-        showToast('Git 커밋 웹훅 및 자동 빌드가 완료되었습니다! 🚀');
+        showToast('업무 자동 보고 및 시스템 빌드 검증이 완료되었습니다! 🚀');
 
         const updatedRes = await fetch('/api/data');
         if (updatedRes.ok) {
@@ -573,7 +584,7 @@ export default function Home() {
                 로그아웃
               </button>
             </div>
-            <span className="text-[10px] text-gray-500 font-mono">Sprint Analyzer Engine</span>
+            <span className="text-[10px] text-gray-500 font-mono">종합 업무 관리 시스템</span>
           </div>
 
           {/* 내 정보 프로필 카드 */}
@@ -583,9 +594,9 @@ export default function Home() {
               <div className="flex-1 min-w-0 flex flex-col">
                 <span className="text-xs font-bold text-gray-200 flex items-center gap-1.5 truncate">
                   <span>{currentUser.name}</span>
-                  <span className="text-[11px]" title={currentUser.role}>{roleIcons[currentUser.role]}</span>
+                  <span className="text-[11px]" title={roleNames[currentUser.role] || currentUser.role}>{roleIcons[currentUser.role]}</span>
                 </span>
-                <span className="text-[9px] text-gray-550 mt-0.5 font-mono">{currentUser.role} Account</span>
+                <span className="text-[9px] text-gray-550 mt-0.5 font-mono">{roleNames[currentUser.role] || currentUser.role} 계정</span>
               </div>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
             </div>
@@ -607,37 +618,17 @@ export default function Home() {
               )}
             </span>
             <div className="flex-1 min-w-0">
-              <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">Deployment Status</div>
+              <div className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">시스템 배포 상태</div>
               <div className="text-xs font-bold text-gray-200 truncate">
-                {buildStatus === 'building' ? 'Building...' : 'Production Ready'}
+                {buildStatus === 'building' ? '검증 및 배포 중...' : '정상 서비스 중'}
               </div>
-              <div className="text-[9px] text-gray-550 mt-0.5 font-mono">Updated {lastBuildTime}</div>
+              <div className="text-[9px] text-gray-550 mt-0.5 font-mono">최근 갱신 {lastBuildTime}</div>
             </div>
           </div>
         </div>
 
         {/* 네비게이션 메뉴 */}
         <nav className="flex flex-col gap-1.5 flex-1 mt-2">
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] ${
-              activeTab === 'dashboard'
-                ? 'bg-orange-600/20 text-orange-300 border border-orange-600/35 shadow-lg shadow-orange-500/5'
-                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900/40 border border-transparent'
-            }`}
-          >
-            <span>📊 대시보드 (Dashboard)</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('kanban')}
-            className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] ${
-              activeTab === 'kanban'
-                ? 'bg-orange-600/20 text-orange-300 border border-orange-600/35 shadow-lg shadow-orange-500/5'
-                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900/40 border border-transparent'
-            }`}
-          >
-            <span>📋 칸반 보드 (Kanban)</span>
-          </button>
           <button
             onClick={() => setActiveTab('milestones')}
             className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] ${
@@ -646,17 +637,7 @@ export default function Home() {
                 : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900/40 border border-transparent'
             }`}
           >
-            <span>🎯 마일스톤 & 로드맵</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('chat')}
-            className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] ${
-              activeTab === 'chat'
-                ? 'bg-orange-600/20 text-orange-300 border border-orange-600/35 shadow-lg shadow-orange-500/5'
-                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900/40 border border-transparent'
-            }`}
-          >
-            <span>💬 메시지 (Team Chat)</span>
+            <span>🎯 프로젝트 목표 & 로드맵</span>
           </button>
           <button
             onClick={() => setActiveTab('calendar')}
@@ -666,16 +647,46 @@ export default function Home() {
                 : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900/40 border border-transparent'
             }`}
           >
-            <span>🗓️ 일정 캘린더 (Calendar)</span>
+            <span>🗓️ 프로젝트 일정 캘린더</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('kanban')}
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] ${
+              activeTab === 'kanban'
+                ? 'bg-orange-600/20 text-orange-300 border border-orange-600/35 shadow-lg shadow-orange-500/5'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900/40 border border-transparent'
+            }`}
+          >
+            <span>📋 부서 업무 진행 현황판 (업무 보드)</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('chat')}
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] ${
+              activeTab === 'chat'
+                ? 'bg-orange-600/20 text-orange-300 border border-orange-600/35 shadow-lg shadow-orange-500/5'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900/40 border border-transparent'
+            }`}
+          >
+            <span>💬 부서 메신저 (대화방)</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('dashboard')}
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] ${
+              activeTab === 'dashboard'
+                ? 'bg-orange-600/20 text-orange-300 border border-orange-600/35 shadow-lg shadow-orange-500/5'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900/40 border border-transparent'
+            }`}
+          >
+            <span>📊 종합 업무 요약판 (대시보드)</span>
           </button>
         </nav>
 
         {/* 작업 통계 요약 위젯 */}
         <div className="bg-gray-950/40 border border-gray-900 p-4 rounded-xl flex flex-col gap-2.5">
-          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Sprint Metrics</span>
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">부서 업무 통계</span>
           <div className="grid grid-cols-2 gap-2 text-[10px]">
             <div className="bg-gray-900/60 p-2 rounded-lg border border-gray-850 flex flex-col justify-center">
-              <span className="text-gray-500 font-bold">긴급(HIGH)</span>
+              <span className="text-gray-500 font-bold">긴급 업무</span>
               <span className="text-xs font-black text-red-400 mt-0.5">{highPriorityTasks}건</span>
             </div>
             <div className="bg-gray-900/60 p-2 rounded-lg border border-gray-850 flex flex-col justify-center">
@@ -691,7 +702,7 @@ export default function Home() {
 
         {/* 오늘의 퀵 메모장 위젯 */}
         <div className="bg-gray-950/40 border border-gray-900 p-4 rounded-xl flex flex-col gap-2">
-          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Quick Scratchpad</span>
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">부서 공유 메모장</span>
           <textarea
             value={scratchpadMemo}
             onChange={handleMemoChange}
@@ -704,10 +715,10 @@ export default function Home() {
         {/* 나의 오늘 작업 위젯 */}
         <div className="bg-gray-950/40 border border-gray-900 p-4 rounded-xl flex flex-col gap-2.5">
           <div className="flex justify-between items-center">
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">My Tasks ({myTasks.length})</span>
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">내 업무 목록 ({myTasks.length})</span>
             <span className="text-[10px] font-bold text-orange-400 flex items-center gap-1">
               <span>{roleIcons[currentUser?.role] || ''}</span>
-              <span>{currentUser?.role}</span>
+              <span>{roleNames[currentUser?.role] || currentUser?.role}</span>
             </span>
           </div>
           <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
@@ -737,7 +748,7 @@ export default function Home() {
         {activeMilestone && (
           <div className="bg-gray-950/40 border border-gray-900 p-4 rounded-xl flex flex-col gap-2.5">
             <div className="flex justify-between items-center">
-              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Active Sprint</span>
+              <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">현재 진행 주기</span>
               <span className={`text-[10px] font-black font-mono px-1.5 py-0.5 rounded border ${getDDayColorClass(activeMilestone.endDate)}`}>
                 {getDDay(activeMilestone.endDate)}
               </span>
@@ -761,7 +772,7 @@ export default function Home() {
 
         {/* 사이드바 하단 위젯: 팀 디렉토리 */}
         <div className="border-t border-gray-900 pt-4 flex flex-col gap-2.5">
-          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider px-1">Project Members</span>
+          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider px-1">참여 직원 목록</span>
           <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
             {data.users.map(u => (
               <div key={u.id} className="flex items-center justify-between text-[11px]">
@@ -771,7 +782,7 @@ export default function Home() {
                     <span className={`absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 rounded-full border border-gray-950 ${u.online ? 'bg-emerald-500 animate-pulse' : 'bg-gray-600'}`} />
                   </div>
                   <span className="text-gray-300 font-medium flex items-center gap-1">
-                    <span className="text-[11px]" title={u.role}>{roleIcons[u.role] || ''}</span>
+                    <span className="text-[11px]" title={roleNames[u.role] || u.role}>{roleIcons[u.role] || ''}</span>
                     <span>{u.name}</span>
                   </span>
                 </div>
@@ -780,9 +791,9 @@ export default function Home() {
                     onClick={() => {
                       setActiveTab('chat');
                     }}
-                    className="text-[9px] text-gray-500 hover:text-orange-400 transition-colors font-bold px-1 py-0.5"
+                    className="text-[9px] text-gray-550 hover:text-orange-400 transition-colors font-bold px-1 py-0.5"
                   >
-                    DM
+                    대화
                   </button>
                 )}
               </div>
@@ -799,11 +810,11 @@ export default function Home() {
         <header className="glass shrink-0 border-b border-gray-900 px-8 py-4 flex items-center justify-between sticky top-0 z-30">
           <div className="flex items-center space-x-3">
             <h1 className="text-sm font-bold text-white uppercase tracking-wider">
-              {activeTab === 'dashboard' && 'Dashboard Overview'}
-              {activeTab === 'kanban' && 'Sprint Kanban'}
-              {activeTab === 'milestones' && 'Roadmap milestones'}
-              {activeTab === 'chat' && 'Team Chatting'}
-              {activeTab === 'calendar' && 'Sprint Calendar'}
+              {activeTab === 'dashboard' && '종합 업무 요약판'}
+              {activeTab === 'kanban' && '부서 업무 진행 현황판'}
+              {activeTab === 'milestones' && '프로젝트 목표 & 로드맵'}
+              {activeTab === 'chat' && '부서 메신저'}
+              {activeTab === 'calendar' && '프로젝트 일정 캘린더'}
             </h1>
           </div>
           <div className="flex items-center space-x-2">
@@ -814,13 +825,9 @@ export default function Home() {
         {/* 본문 콘텐츠 스크롤 영역 */}
         <div className="flex-1 p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto">
           
-          {/* 상단 깃 시뮬레이터 (상시 노출) */}
+          {/* 상단 AI 업무 비서 & 요약 분석기 (상시 노출) */}
           <section>
-            <div className="flex items-center space-x-2 mb-2 px-1">
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Git Webhook Integration Simulator</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            </div>
-            <GitSimulator onTriggerGitAction={handleTriggerGitAction} />
+            <AIWorkAssistant tasks={data.tasks} users={data.users} milestones={data.milestones} />
           </section>
 
           {/* 메인 탭 콘텐츠 렌더링 */}

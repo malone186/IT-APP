@@ -8,6 +8,14 @@ const roleIcons = {
   DESIGNER: '🎨'
 };
 
+const roleNames = {
+  PM: '대표/기획',
+  FE: '마케팅/실무',
+  BE: '재무/운영',
+  DEVOPS: '총무/지원',
+  DESIGNER: '디자인'
+};
+
 const getAvatarPlaceholder = (name) => {
   const initial = name ? name.slice(-2) : '?';
   let hash = 0;
@@ -26,10 +34,10 @@ const getAvatarPlaceholder = (name) => {
 };
 
 const COLUMNS = [
-  { id: 'TODO', title: '할 일', color: 'border-t-blue-500' },
+  { id: 'TODO', title: '대기 업무', color: 'border-t-blue-500' },
   { id: 'IN_PROGRESS', title: '진행 중', color: 'border-t-amber-500' },
-  { id: 'IN_REVIEW', title: '검토 중', color: 'border-t-orange-500' },
-  { id: 'DONE', title: '완료', color: 'border-t-emerald-500' }
+  { id: 'IN_REVIEW', title: '검토/컨펌 중', color: 'border-t-orange-500' },
+  { id: 'DONE', title: '완료 보고', color: 'border-t-emerald-500' }
 ];
 
 export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpdateTask, onDeleteTask, onTaskStatusChange }) {
@@ -150,12 +158,12 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
   const getPriorityBadge = (priority) => {
     switch (priority) {
       case 'HIGH':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-950 text-red-400 border border-red-900/50">High</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-950 text-red-400 border border-red-900/50">긴급</span>;
       case 'MEDIUM':
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-400 border border-amber-900/50">Medium</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 text-amber-400 border border-amber-900/50">보통</span>;
       case 'LOW':
       default:
-        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-950 text-blue-400 border border-blue-900/50">Low</span>;
+        return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-950 text-blue-400 border border-blue-900/50">낮음</span>;
     }
   };
 
@@ -164,23 +172,23 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
       {/* 상단 액션 */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <span>Sprint Kanban Board</span>
+          <span>부서 업무 진행 현황판</span>
         </h2>
         <button
           onClick={() => openAddModal()}
           className="bg-orange-600 hover:bg-orange-700 text-white font-medium text-sm px-4 py-2 rounded-lg transition-colors shadow-lg shadow-orange-500/20"
         >
-          + 새 태스크 추가
+          + 새 업무 등록
         </button>
       </div>
       
       {/* 검색 및 필터링 제어 영역 */}
       <div className="bg-gray-950/40 border border-gray-900/60 p-4 rounded-2xl flex flex-col md:flex-row gap-3 mb-6 items-center justify-between">
         <div className="flex flex-1 w-full md:w-auto items-center space-x-2">
-          <span className="text-xs text-gray-500 shrink-0 select-none">🔎 검색</span>
+          <span className="text-xs text-gray-550 shrink-0 select-none">🔎 검색</span>
           <input
             type="text"
-            placeholder="태스크 제목, 설명 검색..."
+            placeholder="업무 제목, 설명 검색..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="flex-1 max-w-md bg-gray-900 border border-gray-850/80 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-orange-500 placeholder-gray-600 transition-colors"
@@ -190,31 +198,31 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
         <div className="flex w-full md:w-auto gap-3 items-center justify-end">
           {/* 우선순위 필터 */}
           <div className="flex items-center space-x-1.5">
-            <span className="text-[10px] text-gray-500 font-bold uppercase select-none">Priority</span>
+            <span className="text-[10px] text-gray-400 font-bold uppercase select-none">우선도</span>
             <select
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
-              className="bg-gray-900 border border-gray-800 text-xs text-white rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-orange-500"
+              className="bg-gray-900 border border-gray-850 text-xs text-white rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-orange-500 font-medium"
             >
-              <option value="ALL">전체 우선순위</option>
-              <option value="HIGH">High Only</option>
-              <option value="MEDIUM">Medium Only</option>
-              <option value="LOW">Low Only</option>
+              <option value="ALL">전체 우선도</option>
+              <option value="HIGH">긴급 (상)</option>
+              <option value="MEDIUM">보통 (중)</option>
+              <option value="LOW">낮음 (하)</option>
             </select>
           </div>
 
           {/* 담당자 필터 */}
           <div className="flex items-center space-x-1.5">
-            <span className="text-[10px] text-gray-550 font-bold uppercase select-none">Assignee</span>
+            <span className="text-[10px] text-gray-450 font-bold uppercase select-none">담당 직원</span>
             <select
               value={filterAssignee}
               onChange={(e) => setFilterAssignee(e.target.value)}
-              className="bg-gray-900 border border-gray-800 text-xs text-white rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-orange-500"
+              className="bg-gray-900 border border-gray-850 text-xs text-white rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-orange-500 font-medium"
             >
-              <option value="ALL">전체 담당자</option>
+              <option value="ALL">전체 직원</option>
               {users.map(u => (
                 <option key={u.id} value={u.id}>
-                  {roleIcons[u.role] || ''} {u.name}
+                  {roleIcons[u.role] || ''} {u.name} ({roleNames[u.role] || u.role})
                 </option>
               ))}
             </select>
@@ -222,14 +230,14 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
 
           {/* 마일스톤 필터 */}
           <div className="flex items-center space-x-1.5">
-            <span className="text-[10px] text-gray-550 font-bold uppercase select-none">Milestone</span>
+            <span className="text-[10px] text-gray-450 font-bold uppercase select-none">프로젝트 목표</span>
             <select
               value={filterMilestone}
               onChange={(e) => setFilterMilestone(e.target.value)}
-              className="bg-gray-900 border border-gray-800 text-xs text-white rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-orange-500"
+              className="bg-gray-900 border border-gray-850 text-xs text-white rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-orange-500 font-medium"
             >
-              <option value="ALL">전체 마일스톤</option>
-              <option value="NONE">마일스톤 없음</option>
+              <option value="ALL">전체 목표</option>
+              <option value="NONE">목표 지정 없음</option>
               {milestones.map(m => (
                 <option key={m.id} value={m.id}>
                   🎯 {m.title}
@@ -340,21 +348,21 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
         })}
       </div>
 
-      {/* 태스크 추가/수정 모달 */}
+      {/* 업무 추가/수정 모달 */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="glass rounded-2xl w-full max-w-md p-6 border border-gray-800 shadow-2xl">
             <h3 className="text-lg font-bold text-white mb-4">
-              {editingTask ? '태스크 수정' : '새 태스크 추가'}
+              {editingTask ? '업무 정보 수정' : '새 업무 등록'}
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* 제목 */}
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1">태스크명 *</label>
+                <label className="block text-xs font-semibold text-gray-400 mb-1">업무 제목 *</label>
                 <input
                   type="text"
                   required
-                  placeholder="작업 제목을 입력하세요"
+                  placeholder="업무 제목을 입력하세요"
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
                   className="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors"
@@ -363,9 +371,9 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
 
               {/* 설명 */}
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1">설명</label>
+                <label className="block text-xs font-semibold text-gray-400 mb-1">상세 설명</label>
                 <textarea
-                  placeholder="작업 내용 상세를 기입하세요"
+                  placeholder="업무 내용 상세를 기입하세요"
                   value={formDesc}
                   onChange={(e) => setFormDesc(e.target.value)}
                   rows={3}
@@ -376,30 +384,30 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
               <div className="grid grid-cols-2 gap-4">
                 {/* 우선순위 */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1">우선순위</label>
+                  <label className="block text-xs font-semibold text-gray-400 mb-1">우선도</label>
                   <select
                     value={formPriority}
                     onChange={(e) => setFormPriority(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors"
+                    className="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors font-medium"
                   >
-                    <option value="HIGH">High</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="LOW">Low</option>
+                    <option value="HIGH">긴급 (상)</option>
+                    <option value="MEDIUM">보통 (중)</option>
+                    <option value="LOW">낮음 (하)</option>
                   </select>
                 </div>
 
                 {/* 상태 */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1">상태</label>
+                  <label className="block text-xs font-semibold text-gray-400 mb-1">진행 상태</label>
                   <select
                     value={formStatus}
                     onChange={(e) => setFormStatus(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors"
+                    className="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors font-medium"
                   >
-                    <option value="TODO">할 일</option>
+                    <option value="TODO">대기 업무</option>
                     <option value="IN_PROGRESS">진행 중</option>
-                    <option value="IN_REVIEW">검토 중</option>
-                    <option value="DONE">완료</option>
+                    <option value="IN_REVIEW">검토/컨펌 중</option>
+                    <option value="DONE">완료 보고</option>
                   </select>
                 </div>
               </div>
@@ -407,15 +415,15 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
               <div className="grid grid-cols-2 gap-4">
                 {/* 담당자 */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1">담당자</label>
+                  <label className="block text-xs font-semibold text-gray-400 mb-1">담당 직원</label>
                   <select
                     value={formAssignee}
                     onChange={(e) => setFormAssignee(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors"
+                    className="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors font-medium"
                   >
                     {users.map((u) => (
                       <option key={u.id} value={u.id}>
-                        {roleIcons[u.role] || ''} {u.name} ({u.role})
+                        {roleIcons[u.role] || ''} {u.name} ({roleNames[u.role] || u.role})
                       </option>
                     ))}
                   </select>
@@ -423,13 +431,13 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
 
                 {/* 마일스톤 */}
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1">마일스톤</label>
+                  <label className="block text-xs font-semibold text-gray-400 mb-1">목표 프로젝트</label>
                   <select
                     value={formMilestone || ''}
                     onChange={(e) => setFormMilestone(e.target.value)}
-                    className="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors"
+                    className="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors font-medium"
                   >
-                    <option value="">연동 안 함 (선택 없음)</option>
+                    <option value="">연동 목표 없음</option>
                     {milestones.map((m) => (
                       <option key={m.id} value={m.id}>
                         {m.title}
@@ -439,9 +447,9 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
                 </div>
               </div>
 
-              {/* 마감 기한 (캘린더 연동) */}
+              {/* 마감 기한 (일정표 연동) */}
               <div>
-                <label className="block text-xs font-semibold text-gray-400 mb-1">마감 기한 (일정 캘린더 연동)</label>
+                <label className="block text-xs font-semibold text-gray-400 mb-1">마감 기한 (일정표 연동)</label>
                 <input
                   type="date"
                   value={formDueDate}

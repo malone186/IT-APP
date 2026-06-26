@@ -3,8 +3,8 @@ import React, { useState, useRef, useEffect } from 'react';
 export default function GitSimulator({ onTriggerGitAction }) {
   const [input, setInput] = useState('');
   const [consoleLogs, setConsoleLogs] = useState([
-    { id: '1', type: 'system', text: 'DevFlow Git Terminal v1.0.0' },
-    { id: '2', type: 'system', text: 'Usage: git commit -m "close #<id>"  or  git commit -m "review #<id>"' }
+    { id: '1', type: 'system', text: '실시간 자동 업무 보고 시뮬레이터 (터미널) v1.0.0' },
+    { id: '2', type: 'system', text: '사용법: git commit -m "완료 #<업무ID>" 또는 git commit -m "검토 #<업무ID>"' }
   ]);
   const consoleBottomRef = useRef(null);
 
@@ -32,7 +32,7 @@ export default function GitSimulator({ onTriggerGitAction }) {
     if (!match) {
       setConsoleLogs((prev) => [
         ...prev,
-        { id: String(Date.now() + 1), type: 'error', text: "Error: Only 'git commit -m \"<message>\"' command format is simulated." }
+        { id: String(Date.now() + 1), type: 'error', text: "오류: 'git commit -m \"<메시지>\"' 형식의 업무 완료 보고 명령만 테스트 가능합니다." }
       ]);
       return;
     }
@@ -44,7 +44,7 @@ export default function GitSimulator({ onTriggerGitAction }) {
     if (!issueMatch) {
       setConsoleLogs((prev) => [
         ...prev,
-        { id: String(Date.now() + 2), type: 'warning', text: "Info: No task ID (e.g. #3) detected in commit message. Code pushed but no status changed." }
+        { id: String(Date.now() + 2), type: 'warning', text: "안내: 커밋 메시지에 업무 ID(예: #3)가 감지되지 않았습니다. 코드는 업로드되었으나 업무 상태는 변경되지 않았습니다." }
       ]);
       return;
     }
@@ -54,18 +54,18 @@ export default function GitSimulator({ onTriggerGitAction }) {
     // 키워드 매칭
     // close, fix, resolve => DONE
     // review, ref => IN_REVIEW
-    const doneKeywords = /\b(close|closes|fix|fixes|resolve|resolves)\b/i;
-    const reviewKeywords = /\b(review|reviews|ref|refs|verify|verifies)\b/i;
+    const doneKeywords = /(close|closes|fix|fixes|resolve|resolves|완료|해결)/i;
+    const reviewKeywords = /(review|reviews|ref|refs|verify|verifies|검토|확인)/i;
 
     let targetStatus = null;
     let actionText = '';
 
     if (doneKeywords.test(commitMessage)) {
       targetStatus = 'DONE';
-      actionText = '완료(Done)';
+      actionText = '완료';
     } else if (reviewKeywords.test(commitMessage)) {
       targetStatus = 'IN_REVIEW';
-      actionText = '검토 중(In Review)';
+      actionText = '검토 중';
     }
 
     if (targetStatus) {
@@ -76,7 +76,7 @@ export default function GitSimulator({ onTriggerGitAction }) {
           {
             id: String(Date.now() + 3),
             type: 'success',
-            text: `[Success] Task #${taskId} auto-transitioned to ${actionText} via commit trigger.`
+            text: `[성공] 업무 #${taskId}의 상태가 자동 보고(커밋 트리거)를 통해 [${actionText}] 상태로 변경되었습니다.`
           }
         ]);
       } else {
@@ -85,7 +85,7 @@ export default function GitSimulator({ onTriggerGitAction }) {
           {
             id: String(Date.now() + 3),
             type: 'error',
-            text: `[Fail] Task #${taskId} could not be found or state transition failed.`
+            text: `[실패] 업무 #${taskId}를 찾을 수 없거나 상태 변경에 실패했습니다.`
           }
         ]);
       }
@@ -95,7 +95,7 @@ export default function GitSimulator({ onTriggerGitAction }) {
         {
           id: String(Date.now() + 3),
           type: 'warning',
-          text: `Info: Commit message had task #${taskId} but no control keyword (e.g. close, review) was found.`
+          text: `안내: 업무 #${taskId}가 지정되었으나, 상태 제어 단어(예: 완료, 해결, 검토, 확인)가 커밋 메시지에서 발견되지 않았습니다.`
         }
       ]);
     }
@@ -110,7 +110,7 @@ export default function GitSimulator({ onTriggerGitAction }) {
           <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
           <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
         </div>
-        <span className="text-[10px] font-mono text-gray-500 font-bold select-none">git-webhook-simulator.sh</span>
+        <span className="text-[10px] font-mono text-gray-500 font-bold select-none">auto-work-report-simulator.sh</span>
         <div className="w-10" />
       </div>
 
@@ -140,7 +140,7 @@ export default function GitSimulator({ onTriggerGitAction }) {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder='git commit -m "fix #3"'
+          placeholder='git commit -m "완료 #3"'
           className="flex-1 bg-transparent focus:outline-none border-none text-xs font-mono text-white placeholder-gray-600"
         />
       </form>
