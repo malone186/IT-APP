@@ -40,6 +40,7 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPriority, setFilterPriority] = useState('ALL');
   const [filterAssignee, setFilterAssignee] = useState('ALL');
+  const [filterMilestone, setFilterMilestone] = useState('ALL');
   
   // 모달 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,7 +61,11 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
       task.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPriority = filterPriority === 'ALL' || task.priority === filterPriority;
     const matchesAssignee = filterAssignee === 'ALL' || task.assigneeId === filterAssignee;
-    return matchesSearch && matchesPriority && matchesAssignee;
+    const matchesMilestone = 
+      filterMilestone === 'ALL' ? true :
+      filterMilestone === 'NONE' ? !task.milestoneId :
+      task.milestoneId === filterMilestone;
+    return matchesSearch && matchesPriority && matchesAssignee && matchesMilestone;
   });
 
   // Drag & Drop 핸들러
@@ -100,7 +105,7 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
     setFormDesc('');
     setFormPriority('MEDIUM');
     setFormAssignee(users[0]?.id || '');
-    setFormMilestone(milestones[0]?.id || '');
+    setFormMilestone('');
     setFormStatus(status);
     setIsModalOpen(true);
   };
@@ -111,7 +116,7 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
     setFormDesc(task.description);
     setFormPriority(task.priority);
     setFormAssignee(task.assigneeId);
-    setFormMilestone(task.milestoneId);
+    setFormMilestone(task.milestoneId || '');
     setFormStatus(task.status);
     setIsModalOpen(true);
   };
@@ -196,7 +201,7 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
 
           {/* 담당자 필터 */}
           <div className="flex items-center space-x-1.5">
-            <span className="text-[10px] text-gray-500 font-bold uppercase select-none">Assignee</span>
+            <span className="text-[10px] text-gray-550 font-bold uppercase select-none">Assignee</span>
             <select
               value={filterAssignee}
               onChange={(e) => setFilterAssignee(e.target.value)}
@@ -206,6 +211,24 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
               {users.map(u => (
                 <option key={u.id} value={u.id}>
                   {roleIcons[u.role] || ''} {u.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* 마일스톤 필터 */}
+          <div className="flex items-center space-x-1.5">
+            <span className="text-[10px] text-gray-550 font-bold uppercase select-none">Milestone</span>
+            <select
+              value={filterMilestone}
+              onChange={(e) => setFilterMilestone(e.target.value)}
+              className="bg-gray-900 border border-gray-800 text-xs text-white rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-orange-500"
+            >
+              <option value="ALL">전체 마일스톤</option>
+              <option value="NONE">마일스톤 없음</option>
+              {milestones.map(m => (
+                <option key={m.id} value={m.id}>
+                  🎯 {m.title}
                 </option>
               ))}
             </select>
@@ -271,7 +294,10 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
                       {/* 카드 하단 메타 */}
                       <div className="flex justify-between items-center mt-2 border-t border-gray-800/50 pt-2.5">
                         {milestone && (
-                          <span className="text-[10px] bg-gray-900 border border-gray-800 text-gray-400 px-2 py-0.5 rounded max-w-[100px] truncate">
+                          <span 
+                            title={milestone.title}
+                            className="text-[10px] bg-gray-900 border border-gray-800 text-gray-400 px-2 py-0.5 rounded max-w-[130px] truncate cursor-help select-none"
+                          >
                             🎯 {milestone.title}
                           </span>
                         )}
@@ -385,10 +411,11 @@ export default function KanbanBoard({ tasks, users, milestones, onAddTask, onUpd
                 <div>
                   <label className="block text-xs font-semibold text-gray-400 mb-1">마일스톤</label>
                   <select
-                    value={formMilestone}
+                    value={formMilestone || ''}
                     onChange={(e) => setFormMilestone(e.target.value)}
                     className="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors"
                   >
+                    <option value="">연동 안 함 (선택 없음)</option>
                     {milestones.map((m) => (
                       <option key={m.id} value={m.id}>
                         {m.title}
