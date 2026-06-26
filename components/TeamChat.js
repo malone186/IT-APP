@@ -99,28 +99,34 @@ export default function TeamChat({ users, messages, currentUserId, onSendMessage
         <div className="flex-1 flex flex-col overflow-y-auto">
           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-2 px-1">Direct Messages</span>
           <div className="space-y-1.5">
-            {otherUsers.map(user => (
-              <button
-                key={user.id}
-                onClick={() => setActiveRoomId(user.id)}
-                className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition-colors flex items-center justify-between ${
-                  activeRoomId === user.id
-                    ? 'bg-orange-600/10 text-orange-400 border border-orange-600/20 font-bold'
-                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900/20 border border-transparent'
-                }`}
-              >
-                <div className="flex items-center space-x-2 truncate">
-                  <div className="relative shrink-0">
-                    {getAvatarPlaceholder(user.name)}
-                    <span className={`absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 rounded-full border border-gray-950 ${user.online ? 'bg-emerald-500' : 'bg-gray-600'}`} />
+            {otherUsers.length === 0 ? (
+              <div className="text-[10px] text-gray-550 italic px-2 py-3 select-none leading-relaxed">
+                가입된 다른 팀원이 없습니다.<br/>새 계정을 가입시켜 주세요!
+              </div>
+            ) : (
+              otherUsers.map(user => (
+                <button
+                  key={user.id}
+                  onClick={() => setActiveRoomId(user.id)}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition-colors flex items-center justify-between ${
+                    activeRoomId === user.id
+                      ? 'bg-orange-600/10 text-orange-400 border border-orange-600/20 font-bold'
+                      : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900/20 border border-transparent'
+                  }`}
+                >
+                  <div className="flex items-center space-x-2 truncate">
+                    <div className="relative shrink-0">
+                      {getAvatarPlaceholder(user.name)}
+                      <span className={`absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 rounded-full border border-gray-950 ${user.online ? 'bg-emerald-500' : 'bg-gray-600'}`} />
+                    </div>
+                    <span className="truncate flex items-center gap-0.5">
+                      <span>{roleIcons[user.role] || ''}</span>
+                      <span>{user.name} ({user.role})</span>
+                    </span>
                   </div>
-                  <span className="truncate flex items-center gap-0.5">
-                    <span>{roleIcons[user.role] || ''}</span>
-                    <span>{user.name} ({user.role})</span>
-                  </span>
-                </div>
-              </button>
-            ))}
+                </button>
+              ))
+            )}
           </div>
         </div>
 
