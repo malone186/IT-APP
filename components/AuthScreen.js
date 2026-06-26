@@ -133,24 +133,6 @@ export default function AuthScreen({ users, onLogin, onSignUp }) {
               신규 팀원 계정 등록 (회원가입)
             </button>
           </div>
-          
-          {/* 퀵 데모 접속 (개발자 편의 기능) */}
-          <div className="w-full max-w-sm pt-6 border-t border-gray-900 mt-4">
-            <span className="text-[10px] text-gray-550 font-bold uppercase tracking-wider block mb-3">
-              개발자 빠른 체험 계정
-            </span>
-            <button
-              type="button"
-              onClick={() => handleQuickLogin('woojin', '123')}
-              className="w-full bg-gray-950/60 hover:bg-gray-900/80 border border-gray-850 hover:border-gray-800 rounded-2xl p-4 text-left transition-all flex justify-between items-center group cursor-pointer"
-            >
-              <div className="flex flex-col">
-                <span className="text-xs text-gray-300 font-bold group-hover:text-orange-400 transition-colors">이우진 (PM)</span>
-                <span className="text-[10px] text-gray-550 font-mono mt-1">ID: woojin / PW: 123</span>
-              </div>
-              <span className="text-gray-500 group-hover:text-gray-300 text-xs transition-colors">바로 로그인 →</span>
-            </button>
-          </div>
         </div>
       ) : (
         /* 포커스 로그인 또는 회원가입 폼 (중앙 모달 구조) */

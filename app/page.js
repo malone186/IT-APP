@@ -511,7 +511,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-gray-200 font-sans flex flex-col md:flex-row">
+    <div className="min-h-screen bg-[#0B0F19] text-gray-200 font-sans flex flex-col md:flex-row animate-fade-in-up">
       
       {/* 1. 좌측 사이드바 (Sidebar) */}
       <aside className="w-full md:w-64 glass border-b md:border-b-0 md:border-r border-gray-900 shrink-0 flex flex-col justify-between p-6 gap-5 md:sticky md:top-0 md:h-screen overflow-y-auto">
@@ -582,7 +582,7 @@ export default function Home() {
         <nav className="flex flex-col gap-1.5 flex-1 mt-2">
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between ${
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] ${
               activeTab === 'dashboard'
                 ? 'bg-orange-600/20 text-orange-300 border border-orange-600/35 shadow-lg shadow-orange-500/5'
                 : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900/40 border border-transparent'
@@ -592,7 +592,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => setActiveTab('kanban')}
-            className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between ${
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] ${
               activeTab === 'kanban'
                 ? 'bg-orange-600/20 text-orange-300 border border-orange-600/35 shadow-lg shadow-orange-500/5'
                 : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900/40 border border-transparent'
@@ -602,7 +602,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => setActiveTab('milestones')}
-            className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between ${
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] ${
               activeTab === 'milestones'
                 ? 'bg-orange-600/20 text-orange-300 border border-orange-600/35 shadow-lg shadow-orange-500/5'
                 : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900/40 border border-transparent'
@@ -612,7 +612,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => setActiveTab('chat')}
-            className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between ${
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] ${
               activeTab === 'chat'
                 ? 'bg-orange-600/20 text-orange-300 border border-orange-600/35 shadow-lg shadow-orange-500/5'
                 : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900/40 border border-transparent'
@@ -744,37 +744,39 @@ export default function Home() {
           </section>
 
           {/* 메인 탭 콘텐츠 렌더링 */}
-          <section className="glass rounded-3xl border border-gray-800/80 min-h-[500px]">
-            {activeTab === 'dashboard' && (
-              <Dashboard tasks={data.tasks} users={data.users} logs={data.logs} milestones={data.milestones} />
-            )}
-            {activeTab === 'kanban' && (
-              <KanbanBoard
-                tasks={data.tasks}
-                users={data.users}
-                milestones={data.milestones}
-                onAddTask={handleAddTask}
-                onUpdateTask={handleUpdateTask}
-                onDeleteTask={handleDeleteTask}
-                onTaskStatusChange={handleTaskStatusChange}
-              />
-            )}
-            {activeTab === 'milestones' && (
-              <Milestones
-                milestones={data.milestones}
-                tasks={data.tasks}
-                onAddMilestone={handleAddMilestone}
-                onDeleteMilestone={handleDeleteMilestone}
-              />
-            )}
-            {activeTab === 'chat' && (
-              <TeamChat
-                users={data.users}
-                messages={data.messages}
-                currentUserId={currentUserId}
-                onSendMessage={handleSendMessage}
-              />
-            )}
+          <section className="glass rounded-3xl border border-gray-800/80 min-h-[500px] overflow-hidden">
+            <div key={activeTab} className="animate-fade-in-up p-1">
+              {activeTab === 'dashboard' && (
+                <Dashboard tasks={data.tasks} users={data.users} logs={data.logs} milestones={data.milestones} />
+              )}
+              {activeTab === 'kanban' && (
+                <KanbanBoard
+                  tasks={data.tasks}
+                  users={data.users}
+                  milestones={data.milestones}
+                  onAddTask={handleAddTask}
+                  onUpdateTask={handleUpdateTask}
+                  onDeleteTask={handleDeleteTask}
+                  onTaskStatusChange={handleTaskStatusChange}
+                />
+              )}
+              {activeTab === 'milestones' && (
+                <Milestones
+                  milestones={data.milestones}
+                  tasks={data.tasks}
+                  onAddMilestone={handleAddMilestone}
+                  onDeleteMilestone={handleDeleteMilestone}
+                />
+              )}
+              {activeTab === 'chat' && (
+                <TeamChat
+                  users={data.users}
+                  messages={data.messages}
+                  currentUserId={currentUserId}
+                  onSendMessage={handleSendMessage}
+                />
+              )}
+            </div>
           </section>
         </div>
       </main>
