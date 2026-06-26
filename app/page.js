@@ -640,6 +640,16 @@ export default function Home() {
             <span>🎯 프로젝트 목표 & 로드맵</span>
           </button>
           <button
+            onClick={() => setActiveTab('gantt')}
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] ${
+              activeTab === 'gantt'
+                ? 'bg-orange-600/20 text-orange-300 border border-orange-600/35 shadow-lg shadow-orange-500/5'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900/40 border border-transparent'
+            }`}
+          >
+            <span>📅 Gantt Chart 타임라인</span>
+          </button>
+          <button
             onClick={() => setActiveTab('calendar')}
             className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between hover:scale-[1.02] active:scale-[0.98] ${
               activeTab === 'calendar'
@@ -813,6 +823,7 @@ export default function Home() {
               {activeTab === 'dashboard' && '종합 업무 요약판'}
               {activeTab === 'kanban' && '부서 업무 진행 현황판'}
               {activeTab === 'milestones' && '프로젝트 목표 & 로드맵'}
+              {activeTab === 'gantt' && 'Gantt Chart 타임라인'}
               {activeTab === 'chat' && '부서 메신저'}
               {activeTab === 'calendar' && '프로젝트 일정 캘린더'}
             </h1>
@@ -824,11 +835,6 @@ export default function Home() {
 
         {/* 본문 콘텐츠 스크롤 영역 */}
         <div className="flex-1 p-8 flex flex-col gap-6 max-w-6xl w-full mx-auto">
-          
-          {/* 마일스톤 간트차트 타임라인 (상시 노출) */}
-          <section>
-            <GanttChart tasks={data.tasks} milestones={data.milestones} />
-          </section>
 
           {/* 메인 탭 콘텐츠 렌더링 */}
           <section className="glass rounded-3xl border border-gray-800/80 min-h-[500px] overflow-hidden">
@@ -846,6 +852,9 @@ export default function Home() {
                   onDeleteTask={handleDeleteTask}
                   onTaskStatusChange={handleTaskStatusChange}
                 />
+              )}
+              {activeTab === 'gantt' && (
+                <GanttChart tasks={data.tasks} milestones={data.milestones} />
               )}
               {activeTab === 'milestones' && (
                 <Milestones
