@@ -1,0 +1,53 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String    @id @default(uuid())
+  name      String
+  role      String
+  avatarUrl String
+  online    Boolean   @default(false)
+  username  String    @unique
+  password  String
+  tasks     Task[]
+}
+
+model Milestone {
+  id        String   @id @default(uuid())
+  title     String
+  startDate String
+  endDate   String
+  tasks     Task[]
+}
+
+model Task {
+  id           String     @id
+  title        String
+  description  String
+  status       String     // TODO, IN_PROGRESS, IN_REVIEW, DONE
+  priority     String     // HIGH, MEDIUM, LOW
+  assigneeId   String
+  assignee     User       @relation(fields: [assigneeId], references: [id], onDelete: Cascade)
+  milestoneId  String?
+  milestone    Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  completedAt  String?
+}
+
+model Log {
+  id        String   @id @default(uuid())
+  timestamp DateTime @default(now())
+  text      String
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  senderId   String
+  receiverId String   // 'general' or User.id
+  text       String
+  timestamp  DateTime @default(now())
+}
